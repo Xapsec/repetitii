@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <title>Disponibilitate Simplificată</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      max-width: 100%;
+    }
+    input, button {
+      font-size: 18px;
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .grid label {
+      display: block;
+      font-size: 16px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f9f9f9;
+    }
+    .grid input {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Completează o singură dată:</h2>
+
+  <input type="text" id="name" placeholder="Numele tău">
+
+  <div class="grid" id="checkboxes"></div>
+
+  <button onclick="send()">Trimite</button>
+
+  <script>
+    const start = new Date("2026-01-15");
+    const end = new Date("2026-02-23");
+    const ore = ["10:00–12:00", "12:00–14:00", "14:00–16:00", "16:00–18:00", "18:00–20:00"];
+    const container = document.getElementById("checkboxes");
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const zi = String(d.getDate()).padStart(2, '0');
+      const luna = String(d.getMonth() + 1).padStart(2, '0');
+      const data = `${zi}.${luna}`;
+      ore.forEach(o => {
+        const val = `${data} ${o}`;
+        const id = val.replace(/\s|–/g, "_");
+        const label = document.createElement("label");
+        label.innerHTML = `<input type="checkbox" value="${val}" id="${id}"> ${val}`;
+        container.appendChild(label);
+      });
+    }
+
+    function send() {
+      const name = document.getElementById("name").value.trim();
+      const checked = Array.from(document.querySelectorAll("input[type='checkbox']:checked"))
+        .map(c => c.value)
+        .join('\n');
+
+      if (!name || checked.length === 0) {
+        alert("Completează numele și selectează orele disponibile.");
+        return;
+      }
+
+      const url = "https://script.google.com/macros/s/AKfycbxJNJ-yOGG3-zJyocQpw75IAZdOi96lqOae2dt4rYDtdOyOuKqNtuKv5XVqTjUTb4V0/exec";
+      const params = `?name=${encodeURIComponent(name)}&availability=${encodeURIComponent(checked)}`;
+
+      fetch(url + params, { method: "POST" })
+        .then(res => res.json())
+        .then(() => {
+          alert("Trimis cu succes! Mulțumim!");
+          document.getElementById("name").value = "";
+          document.querySelectorAll("input[type='checkbox']").forEach(c => c.checked = false);
+        })
+        .catch(() => alert("Eroare la trimitere."));
+    }
+  </script>
+
+</body>
+</html>
